@@ -1,0 +1,85 @@
+services:
+  mysql:
+    image: mysql:8
+    mem_limit: 1g
+    restart: on-failure
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: wallet
+    ports:
+      - 3306:3306
+
+  eureka-server:
+    build: eureka-server/
+    mem_limit: 512m
+    ports:
+      - 8761:8761
+
+  config-server:
+    build: config-server/
+    mem_limit: 512m
+    ports:
+      - 8888:8888
+    restart: on-failure
+    depends_on:
+      - eureka-server
+      - mysql
+
+  auth-service:
+    build: auth-service/
+    mem_limit: 768m
+    ports:
+      - 8082:8082
+    restart: on-failure
+    depends_on:
+      - eureka-server
+      - config-server
+      - mysql
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      DB_PASSWORD: ${DB_PASSWORD}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+
+  user-service:
+    build: user-service/
+    mem_limit: 768m
+    ports:
+      - 8084:8084
+    restart: on-failure
+    depends_on:
+      - eureka-server
+      - config-server
+      - mysql
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+  account-service:
+    build: account-service/
+    mem_limit: 768m
+    ports:
+      - 8081:8081
+    restart: on-failure
+    depends_on:
+      - eureka-server
+      - config-server
+      - mysql
+      - user-service
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+
+  gateway:
+    build: gateway/
+    mem_limit: 512m
+    ports:
+      - 8083:8083
+    restart: on-failure
+    depends_on:
+      - eureka-server
+      - config-server
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+
+
+
+

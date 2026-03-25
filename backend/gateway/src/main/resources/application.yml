@@ -1,0 +1,43 @@
+spring:
+  config:
+    import: "optional:configserver:"
+  application:
+    name: gateway-service
+  cloud:
+    config:
+      discovery:
+        serviceId: config-server
+        enabled: true
+    gateway:
+      routes:
+        - id: user-service-docs
+          uri: lb://user-service
+          predicates:
+            - Path=/users/v3/api-docs/**
+          filters:
+            - RewritePath=/users(?<remaining>.*), ${remaining}
+        - id: auth-service-docs
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/v3/api-docs/**
+          filters:
+            - RewritePath=/auth(?<remaining>.*), ${remaining}
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+server:
+  port: 8083
+
+eureka:
+  instance:
+    hostname: gateway
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+jwt:
+  secret: ${JWT_SECRET}

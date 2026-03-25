@@ -1,0 +1,13 @@
+luna
+sol
+rio
+verde
+nube
+pampa
+campo
+fuego
+mar
+sur
+bosque
+cielo
+estrella

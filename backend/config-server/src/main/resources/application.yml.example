@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: git@github.com:florenciabravo/config-server.git
+          ignore-local-ssh-settings: true
+          private-key: |
+            -----BEGIN OPENSSH PRIVATE KEY-----
+            PASTE PRIVATE KEY HERE
+            -----END OPENSSH PRIVATE KEY-----
+
+server:
+  port: 8888
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: config-server
+    description: Centralized configuration management for all microservices
+    version: 1.0.0
+
+eureka:
+  instance:
+    hostname: config-server
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/

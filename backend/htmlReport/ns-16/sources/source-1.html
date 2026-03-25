@@ -1,0 +1,184 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JwtAuthenticationFilter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.digitalmoneyhouse.gateway.security</a>
+</div>
+
+<h1>Coverage Summary for Class: JwtAuthenticationFilter (com.digitalmoneyhouse.gateway.security)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JwtAuthenticationFilter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.digitalmoneyhouse.gateway.security;
+&nbsp;
+&nbsp;import com.digitalmoneyhouse.gateway.client.UserServiceClient;
+&nbsp;import org.springframework.core.annotation.Order;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+&nbsp;import org.springframework.security.core.authority.SimpleGrantedAuthority;
+&nbsp;import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.springframework.web.server.ServerWebExchange;
+&nbsp;import org.springframework.web.server.WebFilter;
+&nbsp;import org.springframework.web.server.WebFilterChain;
+&nbsp;import reactor.core.publisher.Mono;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@Component
+&nbsp;@Order(-100)
+&nbsp;public class JwtAuthenticationFilter implements WebFilter {
+&nbsp;
+&nbsp;    private final JwtService jwtService;
+&nbsp;    private final UserServiceClient userServiceClient;
+&nbsp;
+&nbsp;    public JwtAuthenticationFilter(JwtService jwtService,
+<b class="nc">&nbsp;                                   UserServiceClient userServiceClient) {</b>
+<b class="nc">&nbsp;        this.jwtService = jwtService;</b>
+<b class="nc">&nbsp;        this.userServiceClient = userServiceClient;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Mono&lt;Void&gt; filter(ServerWebExchange exchange, WebFilterChain chain) {
+&nbsp;
+<b class="nc">&nbsp;        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {</b>
+<b class="nc">&nbsp;            return chain.filter(exchange);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String token = authHeader.substring(7);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!jwtService.isTokenValid(token)) {</b>
+<b class="nc">&nbsp;            return chain.filter(exchange);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return userServiceClient.isTokenBlacklisted(token)</b>
+<b class="nc">&nbsp;                .flatMap(isBlacklisted -&gt; {</b>
+&nbsp;
+<b class="nc">&nbsp;                    if (isBlacklisted) {</b>
+<b class="nc">&nbsp;                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);</b>
+<b class="nc">&nbsp;                        return exchange.getResponse().setComplete();</b>
+&nbsp;                    }
+&nbsp;
+<b class="nc">&nbsp;                    String username = jwtService.extractUsername(token);</b>
+<b class="nc">&nbsp;                    String role = jwtService.extractRole(token);</b>
+&nbsp;
+<b class="nc">&nbsp;                    UsernamePasswordAuthenticationToken auth =</b>
+&nbsp;                            new UsernamePasswordAuthenticationToken(
+&nbsp;                                username,
+&nbsp;                                    null,
+<b class="nc">&nbsp;                                List.of(new SimpleGrantedAuthority(role))</b>
+&nbsp;                            );
+&nbsp;
+<b class="nc">&nbsp;                    return chain.filter(exchange)</b>
+<b class="nc">&nbsp;                            .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));</b>
+&nbsp;                });
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-03-15 23:59</div>
+</div>
+</body>
+</html>
