@@ -1,1 +1,29 @@
+# Environment variables
 .env
+
+# Coverage / reports
+htmlReport/
+coverage/
+*.html
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+
+# Maven / build
+target/
+
+# Docker
+*.tar
+
+# Test reports
+surefire-reports/
+failsafe-reports/
