@@ -28,13 +28,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    // 500 - Role configuration error
-    @ExceptionHandler(RoleNotFoundException.class)
-    public ResponseEntity<String> handleRoleNotFound(RoleNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ex.getMessage());
-    }
-
     // 503 - Dependent service was unavailable
     @ExceptionHandler(ServiceUnavailableException.class)
     public ResponseEntity<String> handleServiceUnavailable(ServiceUnavailableException ex) {

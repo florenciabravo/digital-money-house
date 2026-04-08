@@ -1,6 +1,8 @@
 package com.digitalmoneyhouse.authservice.controller;
 
 import com.digitalmoneyhouse.authservice.dto.VerificationEmailRequestDto;
+import com.digitalmoneyhouse.authservice.entity.AuthUser;
+import com.digitalmoneyhouse.authservice.repository.UserRepository;
 import com.digitalmoneyhouse.authservice.service.EmailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -11,6 +13,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -25,6 +29,9 @@ public class EmailVerificationControllerTest {
     @MockitoBean
     private EmailService emailService;
 
+    @MockitoBean
+    private UserRepository userRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -33,7 +40,13 @@ public class EmailVerificationControllerTest {
 
         VerificationEmailRequestDto request = new VerificationEmailRequestDto();
         request.setEmail("test@test.com");
-        request.setCode("123456");
+
+        AuthUser user = new AuthUser();
+        user.setEmail("test@test.com");
+        user.setVerificationCode("123456");
+
+        Mockito.when(userRepository.findByEmail("test@test.com"))
+                .thenReturn(Optional.of(user));
 
         mockMvc.perform(post("/auth/send-verification-email")
                         .contentType(MediaType.APPLICATION_JSON)

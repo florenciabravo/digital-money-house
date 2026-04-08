@@ -4,11 +4,9 @@ import com.digitalmoneyhouse.userservice.client.AccountClient;
 import com.digitalmoneyhouse.userservice.client.AuthClient;
 import com.digitalmoneyhouse.userservice.dto.*;
 import com.digitalmoneyhouse.userservice.entity.BlacklistedToken;
-import com.digitalmoneyhouse.userservice.entity.Role;
 import com.digitalmoneyhouse.userservice.entity.User;
 import com.digitalmoneyhouse.userservice.exception.ServiceUnavailableException;
 import com.digitalmoneyhouse.userservice.repository.BlacklistedTokenRepository;
-import com.digitalmoneyhouse.userservice.repository.RoleRepository;
 import com.digitalmoneyhouse.userservice.repository.UserRepository;
 
 import jakarta.validation.ValidationException;
@@ -18,10 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -33,16 +27,10 @@ public class UserServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
-    private RoleRepository roleRepository;
-
-    @Mock
     private AccountClient accountClient;
 
     @Mock
     private AuthClient authClient;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
 
     @Mock
     private BlacklistedTokenRepository blacklistedTokenRepository;
@@ -61,20 +49,19 @@ public class UserServiceImplTest {
                 "123456"
         );
 
-        Role role = new Role();
-        role.setName("ROLE_USER");
+        AuthUserResponseDto authResponse =
+                new AuthUserResponseDto(1L, "flor@test.com");
 
-        when(userRepository.existsByEmail(request.getEmail()))
-                .thenReturn(false);
+        when(authClient.register(any()))
+                .thenReturn(authResponse);
 
-        when(roleRepository.findByName("ROLE_USER"))
-                .thenReturn(Optional.of(role));
-
-        when(passwordEncoder.encode("123456"))
-                .thenReturn("encodedPassword");
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setFirstName("Flor");
+        savedUser.setLastName("Bravo");
 
         when(userRepository.save(any(User.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenReturn(savedUser);
 
         AccountResponseDto accountResponse = new AccountResponseDto();
         accountResponse.setCvu("123456789");
@@ -92,45 +79,6 @@ public class UserServiceImplTest {
         verify(userRepository).save(any(User.class));
         verify(accountClient).createAccount(any());
         verify(authClient).sendVerificationEmail(any());
-    }
-
-    // Register email duplicated
-    @Test
-    void shouldThrowExceptionWhenEmailAlreadyExists() {
-
-        RegisterRequestDto request = new RegisterRequestDto(
-                "Flor",
-                "Bravo",
-                "flor@test.com",
-                "123456"
-        );
-
-        when(userRepository.existsByEmail(request.getEmail()))
-                .thenReturn(true);
-
-        assertThrows(ValidationException.class,
-                () -> userServiceImpl.register(request));
-    }
-
-    // Non-existent role
-    @Test
-    void shouldThrowExceptionWhenRoleNotFound() {
-
-        RegisterRequestDto request = new RegisterRequestDto(
-                "Flor",
-                "Bravo",
-                "flor@test.com",
-                "123456"
-        );
-
-        when(userRepository.existsByEmail(request.getEmail()))
-                .thenReturn(false);
-
-        when(roleRepository.findByName("ROLE_USER"))
-                .thenReturn(Optional.empty());
-
-        assertThrows(RuntimeException.class,
-                () -> userServiceImpl.register(request));
     }
 
     // Logout success
@@ -171,7 +119,7 @@ public class UserServiceImplTest {
                 () -> userServiceImpl.logout(""));
     }
 
-    // Check blancklist
+    // Check blacklist
     @Test
     void shouldReturnTrueWhenTokenIsBlacklisted() {
 
@@ -185,7 +133,7 @@ public class UserServiceImplTest {
         assertTrue(result);
     }
 
-    // account-service fails → user rollback
+    // account-service fails → rollback user + auth
     @Test
     void shouldRollbackUserWhenAccountServiceFails() {
 
@@ -196,17 +144,11 @@ public class UserServiceImplTest {
                 "123456"
         );
 
-        Role role = new Role();
-        role.setName("ROLE_USER");
+        AuthUserResponseDto authResponse =
+                new AuthUserResponseDto(1L, "flor@test.com");
 
-        when(userRepository.existsByEmail(request.getEmail()))
-                .thenReturn(false);
-
-        when(roleRepository.findByName("ROLE_USER"))
-                .thenReturn(Optional.of(role));
-
-        when(passwordEncoder.encode("123456"))
-                .thenReturn("encodedPassword");
+        when(authClient.register(any()))
+                .thenReturn(authResponse);
 
         User savedUser = new User();
         savedUser.setId(1L);
@@ -224,7 +166,7 @@ public class UserServiceImplTest {
         verify(accountClient).createAccount(any());
     }
 
-    // Auth service failure but registration continues
+    // Email fails but registration continues
     @Test
     void shouldRegisterUserEvenIfEmailServiceFails() {
 
@@ -235,21 +177,16 @@ public class UserServiceImplTest {
                 "123456"
         );
 
-        Role role = new Role();
-        role.setName("ROLE_USER");
+        AuthUserResponseDto authResponse =
+                new AuthUserResponseDto(1L, "flor@test.com");
 
-        when(userRepository.existsByEmail(request.getEmail()))
-                .thenReturn(false);
-
-        when(roleRepository.findByName("ROLE_USER"))
-                .thenReturn(Optional.of(role));
-
-        when(passwordEncoder.encode("123456"))
-                .thenReturn("encodedPassword");
+        when(authClient.register(any()))
+                .thenReturn(authResponse);
 
         User savedUser = new User();
         savedUser.setId(1L);
-        savedUser.setEmail("flor@test.com");
+        savedUser.setFirstName("Flor");
+        savedUser.setLastName("Bravo");
 
         when(userRepository.save(any(User.class)))
                 .thenReturn(savedUser);

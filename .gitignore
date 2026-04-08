@@ -1,0 +1,16 @@
+# Mac
+.DS_Store
+
+# Logs
+*.log
+
+# Node)
+node_modules/
+
+# Java
+target/
+*.class
+
+# IDEs
+.idea/
+.vscode/

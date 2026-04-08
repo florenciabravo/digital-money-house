@@ -1,6 +1,6 @@
 package com.digitalmoneyhouse.authservice.service;
 
-import com.digitalmoneyhouse.authservice.entity.User;
+import com.digitalmoneyhouse.authservice.entity.AuthUser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -18,7 +18,7 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String SECRET_KEY;
 
-    public String generateToken(User user) {
+    public String generateToken(AuthUser user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", user.getId());
         claims.put("role", user.getRole().getName());

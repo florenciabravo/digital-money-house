@@ -3,7 +3,7 @@ package com.digitalmoneyhouse.authservice.service;
 import com.digitalmoneyhouse.authservice.dto.ForgotPasswordRequestDto;
 import com.digitalmoneyhouse.authservice.dto.ResetPasswordRequestDto;
 import com.digitalmoneyhouse.authservice.entity.PasswordResetToken;
-import com.digitalmoneyhouse.authservice.entity.User;
+import com.digitalmoneyhouse.authservice.entity.AuthUser;
 import com.digitalmoneyhouse.authservice.repository.PasswordResetTokenRepository;
 import com.digitalmoneyhouse.authservice.repository.UserRepository;
 import jakarta.validation.ValidationException;
@@ -62,7 +62,7 @@ public class PasswordRecoveryService {
             throw new ValidationException("Token expired");
         }
 
-        User user = resetToken.getUser();
+        AuthUser user = resetToken.getUser();
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 

@@ -27,7 +27,6 @@ public class UserController {
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(
-            //@RequestHeader("Authorization") String authHeader) {
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
