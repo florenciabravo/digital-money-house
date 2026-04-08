@@ -3,7 +3,7 @@ package com.digitalmoneyhouse.authservice.service;
 import com.digitalmoneyhouse.authservice.dto.ForgotPasswordRequestDto;
 import com.digitalmoneyhouse.authservice.dto.ResetPasswordRequestDto;
 import com.digitalmoneyhouse.authservice.entity.PasswordResetToken;
-import com.digitalmoneyhouse.authservice.entity.User;
+import com.digitalmoneyhouse.authservice.entity.AuthUser;
 import com.digitalmoneyhouse.authservice.repository.PasswordResetTokenRepository;
 import com.digitalmoneyhouse.authservice.repository.UserRepository;
 import jakarta.validation.ValidationException;
@@ -56,7 +56,7 @@ public class PasswordRecoveryServiceTest {
         ForgotPasswordRequestDto request = new ForgotPasswordRequestDto();
         request.setEmail("test@test.com");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
         user.setId(1L);
         user.setEmail("test@test.com");
 
@@ -95,7 +95,7 @@ public class PasswordRecoveryServiceTest {
         request.setNewPassword("newPass");
         request.setRepeatPassword("newPass");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
         user.setId(1L);
 
         PasswordResetToken token = new PasswordResetToken();
@@ -156,7 +156,7 @@ public class PasswordRecoveryServiceTest {
         request.setNewPassword("pass");
         request.setRepeatPassword("pass");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
 
         PasswordResetToken token = new PasswordResetToken();
         token.setToken("token123");

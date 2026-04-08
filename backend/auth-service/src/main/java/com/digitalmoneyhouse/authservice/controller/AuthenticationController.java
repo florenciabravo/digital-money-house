@@ -2,14 +2,13 @@ package com.digitalmoneyhouse.authservice.controller;
 
 import com.digitalmoneyhouse.authservice.dto.AuthenticationRequestDto;
 import com.digitalmoneyhouse.authservice.dto.VerifyEmailRequestDto;
+import com.digitalmoneyhouse.authservice.dto.AuthRegisterRequestDto;
+import com.digitalmoneyhouse.authservice.dto.AuthUserResponseDto;
 import com.digitalmoneyhouse.authservice.service.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -17,6 +16,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
+
+    @PostMapping("/register")
+    public ResponseEntity<AuthUserResponseDto> register(
+            @Valid @RequestBody AuthRegisterRequestDto request) {
+
+        return ResponseEntity.ok(authenticationService.register(request));
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        authenticationService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthenticationRequestDto request) {

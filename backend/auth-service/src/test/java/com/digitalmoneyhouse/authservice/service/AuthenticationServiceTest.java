@@ -3,7 +3,7 @@ package com.digitalmoneyhouse.authservice.service;
 import com.digitalmoneyhouse.authservice.dto.AuthenticationRequestDto;
 import com.digitalmoneyhouse.authservice.dto.AuthenticationResponseDto;
 import com.digitalmoneyhouse.authservice.dto.VerifyEmailRequestDto;
-import com.digitalmoneyhouse.authservice.entity.User;
+import com.digitalmoneyhouse.authservice.entity.AuthUser;
 import com.digitalmoneyhouse.authservice.exception.UserNotFoundException;
 import com.digitalmoneyhouse.authservice.repository.UserRepository;
 import jakarta.validation.ValidationException;
@@ -43,7 +43,7 @@ public class AuthenticationServiceTest {
         request.setEmail("test@test.com");
         request.setPassword("123456");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
         user.setEmail("test@test.com");
         user.setPassword("encoded-password");
         user.setEmailVerified(true);
@@ -88,7 +88,7 @@ public class AuthenticationServiceTest {
         request.setEmail("test@test.com");
         request.setPassword("123456");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
         user.setEmail("test@test.com");
         user.setPassword("encoded-password");
         user.setEmailVerified(true);
@@ -111,7 +111,7 @@ public class AuthenticationServiceTest {
         request.setEmail("test@test.com");
         request.setPassword("123456");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
         user.setEmail("test@test.com");
         user.setPassword("encoded-password");
         user.setEmailVerified(false);
@@ -134,7 +134,7 @@ public class AuthenticationServiceTest {
         request.setEmail("test@test.com");
         request.setCode("123456");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
         user.setEmail("test@test.com");
         user.setVerificationCode("123456");
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(10));
@@ -156,7 +156,7 @@ public class AuthenticationServiceTest {
         request.setEmail("test@test.com");
         request.setCode("999999");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
         user.setEmail("test@test.com");
         user.setVerificationCode("123456");
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(10));
@@ -176,7 +176,7 @@ public class AuthenticationServiceTest {
         request.setEmail("test@test.com");
         request.setCode("123456");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
         user.setEmail("test@test.com");
         user.setVerificationCode("123456");
         user.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
