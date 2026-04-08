@@ -3,9 +3,11 @@ package com.digitalmoneyhouse.userservice.integration;
 import com.digitalmoneyhouse.userservice.client.AccountClient;
 import com.digitalmoneyhouse.userservice.client.AuthClient;
 import com.digitalmoneyhouse.userservice.dto.AccountResponseDto;
+import com.digitalmoneyhouse.userservice.dto.AuthUserResponseDto;
 import com.digitalmoneyhouse.userservice.dto.RegisterRequestDto;
 import com.digitalmoneyhouse.userservice.dto.RegisterResponseDto;
 import com.digitalmoneyhouse.userservice.repository.UserRepository;
+import feign.FeignException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,8 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -42,6 +43,14 @@ public class UserIntegrationTest {
     @Test
     void shouldRegisterUserSuccessfully() {
 
+        // mock auth-service
+        AuthUserResponseDto authResponse =
+                new AuthUserResponseDto(1L, "integration@test.com");
+
+        when(authClient.register(any()))
+                .thenReturn(authResponse);
+
+        // mock account-service
         AccountResponseDto account = new AccountResponseDto();
         account.setCvu("123456789");
         account.setAlias("alias.test");
@@ -78,23 +87,16 @@ public class UserIntegrationTest {
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
-
-        boolean exists = userRepository.existsByEmail("integration@test.com");
-        assertThat(exists).isTrue();
+        // validate that user was saved
+        assertThat(userRepository.count()).isEqualTo(1);
     }
 
     @Test
     void shouldFailWhenEmailAlreadyExists() {
 
-        AccountResponseDto account = new AccountResponseDto();
-        account.setCvu("123456789");
-        account.setAlias("alias.test");
-
-        when(accountClient.createAccount(any()))
-                .thenReturn(account);
-
-        doNothing().when(authClient)
-                .sendVerificationEmail(any());
+        // This is now handled by auth-service.
+        when(authClient.register(any()))
+                .thenThrow(mock(FeignException.Conflict.class));
 
         String url = "http://localhost:" + port + "/users/register";
 
@@ -110,10 +112,6 @@ public class UserIntegrationTest {
         HttpEntity<RegisterRequestDto> httpRequest =
                 new HttpEntity<>(request, headers);
 
-        // first register
-        restTemplate.postForEntity(url, httpRequest, RegisterResponseDto.class);
-
-        // second register with same email
         ResponseEntity<String> response =
                 restTemplate.postForEntity(url, httpRequest, String.class);
 
@@ -122,6 +120,15 @@ public class UserIntegrationTest {
 
     @Test
     void shouldRollbackUserWhenAccountServiceFails() {
+
+        AuthUserResponseDto authResponse =
+                new AuthUserResponseDto(1L, "rollback@test.com");
+
+        when(authClient.register(any()))
+                .thenReturn(authResponse);
+
+        when(accountClient.createAccount(any()))
+                .thenThrow(new RuntimeException("account service down"));
 
         String url = "http://localhost:" + port + "/users/register";
 
@@ -137,10 +144,6 @@ public class UserIntegrationTest {
         HttpEntity<RegisterRequestDto> httpRequest =
                 new HttpEntity<>(request, headers);
 
-        // account-service Failure
-        when(accountClient.createAccount(any()))
-                .thenThrow(new RuntimeException("account service down"));
-
         ResponseEntity<String> response =
                 restTemplate.postForEntity(url, httpRequest, String.class);
 
@@ -148,7 +151,6 @@ public class UserIntegrationTest {
         assertThat(response.getStatusCode().is5xxServerError()).isTrue();
 
         // Verify that the user was NOT saved
-        boolean exists = userRepository.existsByEmail("rollback@test.com");
-        assertThat(exists).isFalse();
+        assertThat(userRepository.count()).isEqualTo(0);
     }
 }

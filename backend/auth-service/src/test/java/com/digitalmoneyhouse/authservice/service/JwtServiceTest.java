@@ -1,7 +1,7 @@
 package com.digitalmoneyhouse.authservice.service;
 
 import com.digitalmoneyhouse.authservice.entity.Role;
-import com.digitalmoneyhouse.authservice.entity.User;
+import com.digitalmoneyhouse.authservice.entity.AuthUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ public class JwtServiceTest {
         Role role = new Role();
         role.setName("USER");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
         user.setId(1L);
         user.setEmail("test@test.com");
         user.setRole(role);
@@ -49,7 +49,7 @@ public class JwtServiceTest {
         Role role = new Role();
         role.setName("USER");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
         user.setId(1L);
         user.setEmail("test@test.com");
         user.setRole(role);
@@ -74,7 +74,7 @@ public class JwtServiceTest {
         Role role = new Role();
         role.setName("USER");
 
-        User user = new User();
+        AuthUser user = new AuthUser();
         user.setId(1L);
         user.setEmail("test@test.com");
         user.setRole(role);

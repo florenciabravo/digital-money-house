@@ -1,4 +1,4 @@
-package com.digitalmoneyhouse.userservice.exception;
+package com.digitalmoneyhouse.authservice.exception;
 
 public class RoleNotFoundException extends RuntimeException{
 
@@ -6,3 +6,4 @@ public class RoleNotFoundException extends RuntimeException{
         super(message);
     }
 }
+

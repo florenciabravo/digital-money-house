@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
@@ -17,29 +19,21 @@ public class UserRepositoryTest {
     private UserRepository userRepository;
 
     @Test
-    @DisplayName("Should return true if email exists")
-    void shouldReturnTrueIfEmailExists() {
+    @DisplayName("Should save and retrieve user by id")
+    void shouldSaveAndFindUserById() {
+
+        Long authUserId = 1L;
 
         User user = new User();
-        user.setEmail("test@mail.com");
-        user.setFirstName("Test");
-        user.setLastName("User");
-        user.setPassword("123456");
-        user.setEmailVerified(true);
+        user.setId(authUserId);
+        user.setFirstName("Flor");
+        user.setLastName("Bravo");
 
-        userRepository.save(user);
+        User saved = userRepository.save(user);
 
-        boolean exists = userRepository.existsByEmail("test@mail.com");
+        Optional<User> found = userRepository.findById(saved.getId());
 
-        assertThat(exists).isTrue();
-    }
-
-    @Test
-    @DisplayName("Should return false if email does not exist")
-    void shouldReturnFalseIfEmailDoesNotExist() {
-
-        boolean exists = userRepository.existsByEmail("notfound@mail.com");
-
-        assertThat(exists).isFalse();
+        assertThat(found).isPresent();
+        assertThat(found.get().getFirstName()).isEqualTo("Flor");
     }
 }

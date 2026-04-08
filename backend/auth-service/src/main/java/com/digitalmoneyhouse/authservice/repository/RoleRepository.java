@@ -1,6 +1,6 @@
-package com.digitalmoneyhouse.userservice.repository;
+package com.digitalmoneyhouse.authservice.repository;
 
-import com.digitalmoneyhouse.userservice.entity.Role;
+import com.digitalmoneyhouse.authservice.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
