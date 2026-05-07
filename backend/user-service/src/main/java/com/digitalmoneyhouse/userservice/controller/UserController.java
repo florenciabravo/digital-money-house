@@ -2,6 +2,8 @@ package com.digitalmoneyhouse.userservice.controller;
 
 import com.digitalmoneyhouse.userservice.dto.RegisterRequestDto;
 import com.digitalmoneyhouse.userservice.dto.RegisterResponseDto;
+import com.digitalmoneyhouse.userservice.dto.UserProfileResponseDto;
+import com.digitalmoneyhouse.userservice.dto.UserUpdateRequestDto;
 import com.digitalmoneyhouse.userservice.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
@@ -10,6 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/users")
@@ -44,5 +49,31 @@ public class UserController {
     public ResponseEntity<Boolean> isBlacklisted(@RequestParam String token) {
         boolean exists = userService.isTokenBlacklisted(token);
         return ResponseEntity.ok(exists);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserProfileResponseDto> getUserProfile(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long requestingUserId) {
+
+        if (!id.equals(requestingUserId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        UserProfileResponseDto response = userService.getUserProfile(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<UserProfileResponseDto> updateUserProfile(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long requestingUserId,
+            @Valid @RequestBody UserUpdateRequestDto request) {
+
+        if (!id.equals(requestingUserId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(userService.updateUserProfile(id, request));
     }
 }

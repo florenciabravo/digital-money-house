@@ -1,0 +1,37 @@
+spring:
+  config:
+    activate:
+      on-profile: integration
+
+  application:
+    name: gateway-service
+
+  cloud:
+    config:
+      enabled: false
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/accounts/**
+        - id: card-service
+          uri: lb://card-service
+          predicates:
+            - Path=/cards/**
+
+eureka:
+  client:
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

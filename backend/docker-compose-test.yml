@@ -1,0 +1,129 @@
+# docker-compose-test.yml
+services:
+  mysql:
+    image: mysql:8
+    mem_limit: 1g
+    restart: on-failure
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: wallet_test
+    ports:
+      - 3306:3306
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  eureka-server:
+    build: eureka-server/
+    mem_limit: 512m
+    ports:
+      - 8761:8761
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build: auth-service/
+    mem_limit: 768m
+    ports:
+      - 8082:8082
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      DB_PASSWORD: ${DB_PASSWORD}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_PROFILES_ACTIVE: integration
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/wallet_test
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: auth-service
+
+  user-service:
+    build: user-service/
+    mem_limit: 768m
+    ports:
+      - 8084:8084
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: integration
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/wallet_test
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: user-service
+
+  account-service:
+    build: account-service/
+    mem_limit: 768m
+    ports:
+      - 8081:8081
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: integration
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/wallet_test
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: account-service
+
+  card-service:
+    build: card-service/
+    mem_limit: 768m
+    ports:
+      - 8085:8085
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      account-service:
+        condition: service_started
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: integration
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/wallet_test
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: card-service
+
+  gateway:
+    build: gateway/
+    mem_limit: 512m
+    ports:
+      - 8083:8083
+    restart: on-failure
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_PROFILES_ACTIVE: integration
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: gateway

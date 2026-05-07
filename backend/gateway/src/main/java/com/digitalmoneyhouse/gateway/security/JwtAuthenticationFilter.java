@@ -51,6 +51,7 @@ public class JwtAuthenticationFilter implements WebFilter {
                         return exchange.getResponse().setComplete();
                     }
 
+                    Long userId = jwtService.extractUserId(token);
                     String username = jwtService.extractUsername(token);
                     String role = jwtService.extractRole(token);
 
@@ -61,7 +62,14 @@ public class JwtAuthenticationFilter implements WebFilter {
                                 List.of(new SimpleGrantedAuthority(role))
                             );
 
-                    return chain.filter(exchange)
+                    ServerWebExchange mutatedExchange = exchange.mutate()
+                            .request(builder -> builder
+                                    .header("X-User-Id", userId.toString())
+                                    .header("X-User-Role", role)
+                            )
+                            .build();
+
+                    return chain.filter(mutatedExchange)
                             .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
                 });
     }
