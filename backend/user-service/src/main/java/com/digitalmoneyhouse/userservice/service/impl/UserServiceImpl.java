@@ -6,6 +6,8 @@ import com.digitalmoneyhouse.userservice.dto.*;
 import com.digitalmoneyhouse.userservice.entity.BlacklistedToken;
 import com.digitalmoneyhouse.userservice.entity.User;
 import com.digitalmoneyhouse.userservice.exception.ServiceUnavailableException;
+import com.digitalmoneyhouse.userservice.exception.UnauthorizedException;
+import com.digitalmoneyhouse.userservice.exception.UserNotFoundException;
 import com.digitalmoneyhouse.userservice.repository.BlacklistedTokenRepository;
 import com.digitalmoneyhouse.userservice.repository.UserRepository;
 import com.digitalmoneyhouse.userservice.service.UserService;
@@ -128,4 +130,52 @@ public class UserServiceImpl implements UserService {
         return blacklistedTokenRepository.existsByToken(token);
     }
 
+    @Override
+    public UserProfileResponseDto getUserProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+
+        AccountProfileDto account;
+        try {
+            account = accountClient.getAccountByUserId(userId, userId);
+        } catch (FeignException.NotFound e) {
+            throw new UserNotFoundException("Account not found for userId: " + userId);
+        } catch (FeignException.Forbidden e) {
+            throw new UnauthorizedException("Access denied");
+        } catch (Exception e) {
+            throw new ServiceUnavailableException("Account service unavailable");
+        }
+        return new UserProfileResponseDto(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                account.getCvu(),
+                account.getAlias()
+        );
+    }
+
+    @Override
+    public UserProfileResponseDto updateUserProfile(Long userId, UserUpdateRequestDto request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        userRepository.save(user);
+
+        AccountProfileDto account;
+        try {
+            account = accountClient.getAccountByUserId(userId, userId);
+        } catch (Exception e) {
+            throw new ServiceUnavailableException("Account service unavailable");
+        }
+
+        return new UserProfileResponseDto(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                account.getCvu(),
+                account.getAlias()
+        );
+    }
 }

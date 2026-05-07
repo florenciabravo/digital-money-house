@@ -1,8 +1,11 @@
 package com.digitalmoneyhouse.accountservice.service;
 
+import com.digitalmoneyhouse.accountservice.dto.AccountBalanceResponseDto;
 import com.digitalmoneyhouse.accountservice.dto.AccountCreateRequestDto;
 import com.digitalmoneyhouse.accountservice.dto.AccountCreateResponseDto;
 import com.digitalmoneyhouse.accountservice.entity.Account;
+import com.digitalmoneyhouse.accountservice.exception.ResourceNotFoundException;
+import com.digitalmoneyhouse.accountservice.exception.UnauthorizedException;
 import com.digitalmoneyhouse.accountservice.repository.AccountRepository;
 import com.digitalmoneyhouse.accountservice.util.AliasGenerator;
 import com.digitalmoneyhouse.accountservice.util.CvuGenerator;
@@ -11,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -126,5 +130,52 @@ public class AccountServiceTest {
         assertEquals("mar.sur.nube", response.getAlias());
 
         verify(aliasGenerator, times(2)).generate();
+    }
+
+    // Case Ok (200)
+    @Test
+    void shouldReturnBalanceSuccessfully() {
+
+        Long accountId = 1L;
+        Long userId = 1L;
+
+        Account account = new Account();
+        account.setId(1L);
+        account.setUserId(1L);
+        account.setBalance(BigDecimal.valueOf(500));
+
+        when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+
+        AccountBalanceResponseDto response = accountService.getBalance(accountId, userId);
+
+        assertNotNull(response);
+        assertEquals(1L, response.getAccountId());
+        assertEquals(BigDecimal.valueOf(500), response.getBalance());
+    }
+
+    // Account not found
+    @Test
+    void shouldThrowNotFoundWhenAccountDoesNotExist() {
+
+        when(accountRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                accountService.getBalance(1L, 1L)
+        );
+    }
+
+    // User does not match
+    @Test
+    void shouldThrowUnauthorizedWhenUserDoesNotOwnAccount() {
+
+        Account account = new Account();
+        account.setId(1L);
+        account.setUserId(2L);
+
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+
+        assertThrows(UnauthorizedException.class, () ->
+                accountService.getBalance(1L, 1L)
+        );
     }
 }

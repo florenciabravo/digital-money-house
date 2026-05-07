@@ -22,14 +22,39 @@ spring:
             - Path=/auth/v3/api-docs/**
           filters:
             - RewritePath=/auth(?<remaining>.*), ${remaining}
+        - id: account-service-docs
+          uri: lb://account-service
+          predicates:
+            - Path=/accounts/v3/api-docs/**
+          filters:
+            - RewritePath=/accounts(?<remaining>.*), ${remaining}
+        - id: card-service-docs
+          uri: lb://card-service
+          predicates:
+            - Path=/cards/v3/api-docs/**
+          filters:
+            - RewritePath=/cards(?<remaining>.*), ${remaining}
+
         - id: user-service
           uri: lb://user-service
           predicates:
             - Path=/users/**
+
         - id: auth-service
           uri: lb://auth-service
           predicates:
             - Path=/auth/**
+
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/accounts/**
+
+        - id: card-service
+          uri: lb://card-service
+          predicates:
+            - Path=/cards/**
+
 server:
   port: 8083
 
