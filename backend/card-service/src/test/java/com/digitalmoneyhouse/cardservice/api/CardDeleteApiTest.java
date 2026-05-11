@@ -154,15 +154,39 @@ public class CardDeleteApiTest extends BaseApiTest{
     }
 
     /**
-     * TC64 - Card exists but is not associated to the given account
-     * cardId=2 exists but belongs to a different account
+     * TC64 - Delete card not associated to the given account
      */
     @Test
     void shouldReturn404WhenCardNotAssociatedToAccount() {
+
+        String otherToken = loginAs("other@test.com", "123456");
+
+        Long otherCardId =
+                given()
+                        .header("Authorization", "Bearer " + otherToken)
+                        .contentType(ContentType.JSON)
+                        .body(validCardBody())
+                .when()
+                        .post("/cards")
+                .then()
+                        .statusCode(201)
+                        .extract()
+                        .jsonPath()
+                        .getLong("id");
+
+        given()
+                .header("Authorization", "Bearer " + otherToken)
+                .contentType(ContentType.JSON)
+                .body(Map.of("cardId", otherCardId))
+        .when()
+                .post("/cards/accounts/{accountId}/cards", 2)
+        .then()
+                .statusCode(201);
+
         given()
                 .header("Authorization", "Bearer " + token)
         .when()
-                .delete("/cards/accounts/{accountId}/cards/{cardId}", accountId, 2)
+                .delete("/cards/accounts/{accountId}/cards/{cardId}", 1, otherCardId)
         .then()
                 .statusCode(404);
     }
