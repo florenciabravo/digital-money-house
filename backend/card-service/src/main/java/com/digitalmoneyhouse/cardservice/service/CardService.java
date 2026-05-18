@@ -51,8 +51,8 @@ public class CardService {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
 
-        if (card.getAccountId() != null && !card.getAccountId().equals(accountId)) {
-            throw new ConflictException("Card already associated to another account");
+        if (card.getAccountId() != null) {
+            throw new ConflictException("Card already associated");
         }
 
         card.setAccountId(accountId);
